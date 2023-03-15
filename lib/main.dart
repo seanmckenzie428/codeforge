@@ -217,7 +217,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
               ),
             ),
           ),
-          _isGenerating ? LinearProgressIndicator() : Container(),
+          _isGenerating ? const LinearProgressIndicator() : Container(),
         ],
       ),
     );
