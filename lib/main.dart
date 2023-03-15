@@ -15,7 +15,7 @@ void main() async {
   await windowManager.ensureInitialized();
 
   WindowOptions windowOptions = const WindowOptions(
-    size: Size(354, 520),
+    size: Size(400, 600),
     center: true,
   );
 
@@ -71,7 +71,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
         child: Form(
           key: _formKey,
           child: SizedBox(
-            width: 350,
+            width: 400,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -164,9 +164,47 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                               _isGenerating = true;
                             });
                             await handleGenerateButtonPress();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Generated $_numCodes codes'),
+                                action: SnackBarAction(
+                                  label: 'View Files',
+                                  onPressed: () async {
+                                    // Open file explorer to show csv files
+                                    var f = File(_outputFile);
+                                    // Windows
+                                    try {
+                                      await Process.run("explorer",  [f.parent.path]);
+                                    } on Exception catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
+                                    }
+                                    // Linux
+                                    try {
+                                      await Process.run("xdg-open",  [f.parent.path]);
+                                    } on Exception catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
+                                    }
+                                    // Mac
+                                    try {
+                                      await Process.run("open",  [f.parent.path]);
+                                    } on Exception catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
+                                    }
+                                  },
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
                             setState(() {
                               _isGenerating = false;
                             });
+
                           },
                     child: const Text("Generate Codes"),
                   ),
