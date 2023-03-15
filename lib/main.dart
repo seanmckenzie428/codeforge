@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
 
@@ -38,13 +40,10 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
   int _numCharsBetweenDashes = 0;
   int _codesPerFile = 0;
   String _outputFile = "";
-
-  String _outputText = "";
+  TextEditingController outputTextController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    String? outputLocation;
-    TextEditingController outputTextController = TextEditingController();
     return Scaffold(
       appBar: AppBar(
         title: Text("Random Code Generator"),
@@ -126,13 +125,11 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                       onPressed: () async {
                         _outputFile = await _getOutputLocation() ?? _outputFile;
                         outputTextController.text = _outputFile;
-                      }
-                    });
-                  },
-                  child: Text("Browse")),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                child: Text("Generate Codes"),
+                      },
+                      child: Text("Browse")),
+                  SizedBox(height: 16.0),
+                  ElevatedButton(
+                    child: Text("Generate Codes"),
                 onPressed: () async {
                   if (_formKey.currentState?.validate() != null) {
                     _formKey.currentState?.save();
@@ -224,6 +221,8 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
     String? outputFile = await FilePicker.platform.saveFile(
       dialogTitle: 'Please select an output file:',
       fileName: 'codes.csv',
+      lockParentWindow: true,
+      allowedExtensions: ["csv", "txt"],
     );
 
     // print(outputFile);
