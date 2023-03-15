@@ -206,7 +206,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                             });
 
                           },
-                    child: const Text("Generate Codes"),
+                    child: _isGenerating ? const Text("Generating...") : const Text("Generate Codes"),
                   ),
                   const SizedBox(height: 16.0),
                 ],
