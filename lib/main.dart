@@ -60,7 +60,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Random Code Generator"),
+        title: const Text("Random Code Generator"),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -74,7 +74,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                 children: [
                   TextFormField(
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: "Number of Codes"),
+                    decoration: const InputDecoration(labelText: "Number of Codes"),
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
                         return "Please enter a number";
@@ -87,7 +87,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                   ),
                   TextFormField(
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: "Code Length"),
+                    decoration: const InputDecoration(labelText: "Code Length"),
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
                         return "Please enter a number";
@@ -100,7 +100,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                   ),
                   TextFormField(
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         labelText: "Number of Characters Between Dashes"),
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
@@ -114,7 +114,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                   ),
                   TextFormField(
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: "Codes Per File"),
+                    decoration: const InputDecoration(labelText: "Codes Per File"),
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
                         return "Please enter a number";
@@ -126,13 +126,13 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                     },
                   ),
                   TextFormField(
-                    decoration: InputDecoration(labelText: "Output File"),
+                    decoration: const InputDecoration(labelText: "Output File"),
                     onSaved: (value) {
                       _outputFile = value ?? _outputFile;
                     },
                     controller: outputTextController,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 4.0,
                   ),
                   TextButton(
@@ -140,10 +140,10 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                         _outputFile = await _getOutputLocation() ?? _outputFile;
                         outputTextController.text = _outputFile;
                       },
-                      child: Text("Browse")),
-                  SizedBox(height: 16.0),
+                      child: const Text("Browse")),
+                  const SizedBox(height: 16.0),
                   ElevatedButton(
-                    child: Text("Generate Codes"),
+                    child: const Text("Generate Codes"),
                     onPressed: () async {
                       if (_formKey.currentState?.validate() != null) {
                         _formKey.currentState?.save();
@@ -171,7 +171,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                       }
                     },
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                 ],
               ),
             ),
