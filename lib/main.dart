@@ -181,20 +181,21 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
     final random = Random.secure();
 
     while (newCodes.length < numCodes) {
-      String code = "";
+      final code = StringBuffer();
       int dashIncrementer = 0;
 
       for (var i = 0; i < codeLength; i++) {
         if (dashIncrementer >= numCharsBetweenDashes) {
-          code += "-";
+          code.write("-");
           dashIncrementer = 0;
         }
         dashIncrementer++;
 
-        code += characterSet[random.nextInt(characterSet.length)];
+        code.write(characterSet[random.nextInt(characterSet.length)]);
       }
 
-      newCodes.add(code);
+      newCodes.add(code.toString());
+      code.clear();
     }
 
     return newCodes.toList();
