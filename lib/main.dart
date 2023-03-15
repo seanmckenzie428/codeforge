@@ -68,150 +68,157 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
       appBar: AppBar(
         title: const Text("Random Code Generator"),
       ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: "Number of Codes"),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return "Please enter a number";
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _numCodes = int.parse(value ?? "0");
-                  },
-                ),
-                TextFormField(
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: "Code Length"),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return "Please enter a number";
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _codeLength = int.parse(value ?? "0");
-                  },
-                ),
-                TextFormField(
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: "Number of Characters Between Dashes"),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return "Please enter a number";
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _numCharsBetweenDashes = int.parse(value ?? "0");
-                  },
-                ),
-                TextFormField(
-                  keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: "Codes Per File"),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return "Please enter a number";
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _codesPerFile = int.parse(value ?? "0");
-                  },
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: "Output File"),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return "Please enter a valid file name";
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _outputFile = value ?? _outputFile;
-                  },
-                  controller: outputTextController,
-                ),
-                const SizedBox(
-                  height: 4.0,
-                ),
-                TextButton(
-                  onPressed: () async {
-                    _outputFile = await _getOutputLocation() ?? _outputFile;
-                    outputTextController.text = _outputFile;
-                  },
-                  child: const Text("Browse"),
-                ),
-                const SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: _isGenerating
-                      ? null
-                      : () async {
-                          setState(() {
-                            _isGenerating = true;
-                          });
-                          await handleGenerateButtonPress();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Generated $_numCodes codes'),
-                              action: SnackBarAction(
-                                label: 'View Files',
-                                onPressed: () async {
-                                  // Open file explorer to show csv files
-                                  var f = File(_outputFile);
-                                  // Windows
-                                  try {
-                                    await Process.run("explorer",  [f.parent.path]);
-                                  } on Exception catch (e) {
-                                    if (kDebugMode) {
-                                      print(e);
-                                    }
-                                  }
-                                  // Linux
-                                  try {
-                                    await Process.run("xdg-open",  [f.parent.path]);
-                                  } on Exception catch (e) {
-                                    if (kDebugMode) {
-                                      print(e);
-                                    }
-                                  }
-                                  // Mac
-                                  try {
-                                    await Process.run("open",  [f.parent.path]);
-                                  } on Exception catch (e) {
-                                    if (kDebugMode) {
-                                      print(e);
-                                    }
-                                  }
-                                },
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                          setState(() {
-                            _isGenerating = false;
-                          });
-
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        keyboardType: TextInputType.number,
+                        decoration:
+                            const InputDecoration(labelText: "Number of Codes"),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return "Please enter a number";
+                          }
+                          return null;
                         },
-                  child: _isGenerating ? const Text("Generating...") : const Text("Generate Codes"),
+                        onSaved: (value) {
+                          _numCodes = int.parse(value ?? "0");
+                        },
+                      ),
+                      TextFormField(
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: "Code Length"),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return "Please enter a number";
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _codeLength = int.parse(value ?? "0");
+                        },
+                      ),
+                      TextFormField(
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                            labelText: "Number of Characters Between Dashes"),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return "Please enter a number";
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _numCharsBetweenDashes = int.parse(value ?? "0");
+                        },
+                      ),
+                      TextFormField(
+                        keyboardType: TextInputType.number,
+                        decoration:
+                            const InputDecoration(labelText: "Codes Per File"),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return "Please enter a number";
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _codesPerFile = int.parse(value ?? "0");
+                        },
+                      ),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: "Output File"),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return "Please enter a valid file name";
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _outputFile = value ?? _outputFile;
+                        },
+                        controller: outputTextController,
+                      ),
+                      const SizedBox(
+                        height: 4.0,
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          _outputFile = await _getOutputLocation() ?? _outputFile;
+                          outputTextController.text = _outputFile;
+                        },
+                        child: const Text("Browse"),
+                      ),
+                      const SizedBox(height: 16.0),
+                      ElevatedButton(
+                        onPressed: _isGenerating
+                            ? null
+                            : () async {
+                                setState(() {
+                                  _isGenerating = true;
+                                });
+                                await handleGenerateButtonPress();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Generated $_numCodes codes'),
+                                    action: SnackBarAction(
+                                      label: 'View Files',
+                                      onPressed: () async {
+                                        // Open file explorer to show csv files
+                                        var f = File(_outputFile);
+                                        // Windows
+                                        try {
+                                          await Process.run("explorer",  [f.parent.path]);
+                                        } on Exception catch (e) {
+                                          if (kDebugMode) {
+                                            print(e);
+                                          }
+                                        }
+                                        // Linux
+                                        try {
+                                          await Process.run("xdg-open",  [f.parent.path]);
+                                        } on Exception catch (e) {
+                                          if (kDebugMode) {
+                                            print(e);
+                                          }
+                                        }
+                                        // Mac
+                                        try {
+                                          await Process.run("open",  [f.parent.path]);
+                                        } on Exception catch (e) {
+                                          if (kDebugMode) {
+                                            print(e);
+                                          }
+                                        }
+                                      },
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                                setState(() {
+                                  _isGenerating = false;
+                                });
+
+                              },
+                        child: _isGenerating ? const Text("Generating...") : const Text("Generate Codes"),
+                      ),
+                      const SizedBox(height: 16.0),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16.0),
-              ],
+              ),
             ),
           ),
-        ),
+          _isGenerating ? LinearProgressIndicator() : Container(),
+        ],
       ),
     );
   }
