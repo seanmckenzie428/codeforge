@@ -3,11 +3,25 @@ import 'dart:math';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
+import 'package:window_manager/window_manager.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await windowManager.ensureInitialized();
+
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(354, 520),
+    center: true,
+  );
+
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
   runApp(const MyApp());
 }
 
@@ -130,32 +144,32 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                   SizedBox(height: 16.0),
                   ElevatedButton(
                     child: Text("Generate Codes"),
-                onPressed: () async {
-                  if (_formKey.currentState?.validate() != null) {
-                    _formKey.currentState?.save();
-                    // setState(() {
-                    //   _outputText = "";
-                    // });
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() != null) {
+                        _formKey.currentState?.save();
+                        // setState(() {
+                        //   _outputText = "";
+                        // });
 
-                    final codes = _generateCodes(
-                        _numCodes, _codeLength, _numCharsBetweenDashes);
+                        final codes = _generateCodes(
+                            _numCodes, _codeLength, _numCharsBetweenDashes);
 
-                    if (_codesPerFile > 0 && _codesPerFile < _numCodes) {
-                      final files = _splitIntoFiles(codes, _codesPerFile);
-                      for (int i = 0; i < files.length; i++) {
-                        var stripExtension =
-                            _outputFile.substring(0, _outputFile.length - 5);
-                        final filename = "${stripExtension}_$i.csv";
-                        await _writeFile(filename, files[i]);
+                        if (_codesPerFile > 0 && _codesPerFile < _numCodes) {
+                          final files = _splitIntoFiles(codes, _codesPerFile);
+                          for (int i = 0; i < files.length; i++) {
+                            var stripExtension = _outputFile.substring(
+                                0, _outputFile.length - 5);
+                            final filename = "${stripExtension}_$i.csv";
+                            await _writeFile(filename, files[i]);
+                          }
+                        } else {
+                          final filename = _outputFile;
+                          await _writeFile(filename, codes);
+                        }
+
+                        // setState(() {});
                       }
-                    } else {
-                      final filename = _outputFile;
-                      await _writeFile(filename, codes);
-                    }
-
-                    // setState(() {});
-                  }
-                },
+                    },
                   ),
                   SizedBox(height: 16.0),
                 ],
@@ -170,9 +184,9 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
   List<String> _generateCodes(
       int numCodes, int codeLength, int numCharsBetweenDashes,
       {String characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"}) {
-
     if (numCodes > pow(characterSet.length, codeLength)) {
-      throw ErrorDescription("This combination of code length and count will create duplicates.");
+      throw ErrorDescription(
+          "This combination of code length and count will create duplicates.");
     }
 
     Set<String> newCodes = {};
