@@ -49,82 +49,82 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
       appBar: AppBar(
         title: Text("Random Code Generator"),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Number of Codes"),
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return "Please enter a number";
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _numCodes = int.parse(value ?? "0");
-                },
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Code Length"),
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return "Please enter a number";
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _codeLength = int.parse(value ?? "0");
-                },
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                    labelText: "Number of Characters Between Dashes"),
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return "Please enter a number";
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _numCharsBetweenDashes = int.parse(value ?? "0");
-                },
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: "Codes Per File"),
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return "Please enter a number";
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _codesPerFile = int.parse(value ?? "0");
-                },
-              ),
-              TextFormField(
-                decoration: InputDecoration(labelText: "Output File"),
-                onSaved: (value) {
-                  _outputFile = value ?? "";
-                },
-                controller: outputTextController,
-                initialValue: outputLocation,
-              ),
-              SizedBox(
-                height: 4.0,
-              ),
-              TextButton(
-                  onPressed: () {
-                    _getOutputLocation().then((value) {
-                      if (value != null) {
-                        _outputFile = value;
+          child: SizedBox(
+            width: 350,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: "Number of Codes"),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return "Please enter a number";
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _numCodes = int.parse(value ?? "0");
+                    },
+                  ),
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: "Code Length"),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return "Please enter a number";
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _codeLength = int.parse(value ?? "0");
+                    },
+                  ),
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                        labelText: "Number of Characters Between Dashes"),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return "Please enter a number";
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _numCharsBetweenDashes = int.parse(value ?? "0");
+                    },
+                  ),
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: "Codes Per File"),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return "Please enter a number";
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _codesPerFile = int.parse(value ?? "0");
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(labelText: "Output File"),
+                    onSaved: (value) {
+                      _outputFile = value ?? _outputFile;
+                    },
+                    controller: outputTextController,
+                  ),
+                  SizedBox(
+                    height: 4.0,
+                  ),
+                  TextButton(
+                      onPressed: () async {
+                        _outputFile = await _getOutputLocation() ?? _outputFile;
                         outputTextController.text = _outputFile;
                       }
                     });
@@ -159,10 +159,11 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                     // setState(() {});
                   }
                 },
+                  ),
+                  SizedBox(height: 16.0),
+                ],
               ),
-              SizedBox(height: 16.0),
-              Text(_outputText),
-            ],
+            ),
           ),
         ),
       ),
