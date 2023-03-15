@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
 import 'package:window_manager/window_manager.dart';
@@ -36,12 +38,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: RandomCodeGenerator(),
+      home: const RandomCodeGenerator(),
     );
   }
 }
 
 class RandomCodeGenerator extends StatefulWidget {
+  const RandomCodeGenerator({super.key});
+
   @override
   _RandomCodeGeneratorState createState() => _RandomCodeGeneratorState();
 }
@@ -55,6 +59,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
   int _codesPerFile = 0;
   String _outputFile = "";
   TextEditingController outputTextController = TextEditingController();
+  bool _isGenerating = false;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +79,8 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                 children: [
                   TextFormField(
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Number of Codes"),
+                    decoration:
+                        const InputDecoration(labelText: "Number of Codes"),
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
                         return "Please enter a number";
@@ -114,7 +120,8 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                   ),
                   TextFormField(
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Codes Per File"),
+                    decoration:
+                        const InputDecoration(labelText: "Codes Per File"),
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
                         return "Please enter a number";
@@ -127,6 +134,12 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                   ),
                   TextFormField(
                     decoration: const InputDecoration(labelText: "Output File"),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return "Please enter a valid file name";
+                      }
+                      return null;
+                    },
                     onSaved: (value) {
                       _outputFile = value ?? _outputFile;
                     },
@@ -136,40 +149,26 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                     height: 4.0,
                   ),
                   TextButton(
-                      onPressed: () async {
-                        _outputFile = await _getOutputLocation() ?? _outputFile;
-                        outputTextController.text = _outputFile;
-                      },
-                      child: const Text("Browse")),
+                    onPressed: () async {
+                      _outputFile = await _getOutputLocation() ?? _outputFile;
+                      outputTextController.text = _outputFile;
+                    },
+                    child: const Text("Browse"),
+                  ),
                   const SizedBox(height: 16.0),
                   ElevatedButton(
+                    onPressed: _isGenerating
+                        ? null
+                        : () async {
+                            setState(() {
+                              _isGenerating = true;
+                            });
+                            await handleGenerateButtonPress();
+                            setState(() {
+                              _isGenerating = false;
+                            });
+                          },
                     child: const Text("Generate Codes"),
-                    onPressed: () async {
-                      if (_formKey.currentState?.validate() != null) {
-                        _formKey.currentState?.save();
-                        // setState(() {
-                        //   _outputText = "";
-                        // });
-
-                        final codes = _generateCodes(
-                            _numCodes, _codeLength, _numCharsBetweenDashes);
-
-                        if (_codesPerFile > 0 && _codesPerFile < _numCodes) {
-                          final files = _splitIntoFiles(codes, _codesPerFile);
-                          for (int i = 0; i < files.length; i++) {
-                            var stripExtension = _outputFile.substring(
-                                0, _outputFile.length - 5);
-                            final filename = "${stripExtension}_$i.csv";
-                            await _writeFile(filename, files[i]);
-                          }
-                        } else {
-                          final filename = _outputFile;
-                          await _writeFile(filename, codes);
-                        }
-
-                        // setState(() {});
-                      }
-                    },
                   ),
                   const SizedBox(height: 16.0),
                 ],
@@ -181,36 +180,57 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
     );
   }
 
-  List<String> _generateCodes(
-      int numCodes, int codeLength, int numCharsBetweenDashes,
-      {String characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"}) {
-    if (numCodes > pow(characterSet.length, codeLength)) {
-      throw ErrorDescription(
-          "This combination of code length and count will create duplicates.");
-    }
+  Future<void> handleGenerateButtonPress() async {
+    // if an input field is blank, the function won't return without this try catch, keeping the generate button disabled.
+    try {
+      if (_formKey.currentState?.validate() != null) {
+        _formKey.currentState?.save();
+        // var num = int.parse(_numCodes);
+        int? num = _numCodes;
+        int? len = _codeLength;
+        int? dash = _numCharsBetweenDashes;
 
-    Set<String> newCodes = {};
-    final random = Random.secure();
+        final codes = await Isolate.run(() async {
+          return _generateCodes(
+              numCodes: num, codeLength: len, numCharsBetweenDashes: dash);
+        });
 
-    while (newCodes.length < numCodes) {
-      final code = StringBuffer();
-      int dashIncrementer = 0;
+        // final codes = _generateCodes(_numCodes, _codeLength, _numCharsBetweenDashes);
 
-      for (var i = 0; i < codeLength; i++) {
-        if (dashIncrementer >= numCharsBetweenDashes) {
-          code.write("-");
-          dashIncrementer = 0;
+        if (_codesPerFile > 0 && _codesPerFile < _numCodes) {
+          final files = _splitIntoFiles(codes, _codesPerFile);
+          for (int i = 0; i < files.length; i++) {
+            var stripExtension =
+                _outputFile.substring(0, _outputFile.length - 5);
+            final filename = "${stripExtension}_$i.csv";
+            try {
+              await _writeFile(filename, files[i]);
+            } on Exception catch (e) {
+              if (kDebugMode) {
+                print(e);
+              }
+            }
+          }
+        } else {
+          final filename = _outputFile;
+          // await Isolate.run(() async {
+          //   return _writeFile(filename, codes);
+          // });
+          try {
+            await _writeFile(filename, codes);
+          } on Exception catch (e) {
+            if (kDebugMode) {
+              print(e);
+            }
+          }
         }
-        dashIncrementer++;
-
-        code.write(characterSet[random.nextInt(characterSet.length)]);
       }
-
-      newCodes.add(code.toString());
-      code.clear();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
     }
-
-    return newCodes.toList();
+    return;
   }
 
   List<List<String>> _splitIntoFiles(List<String> codes, int codesPerFile) {
@@ -248,4 +268,43 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
       return outputFile;
     }
   }
+}
+
+List<String> _generateCodes(
+    {int? numCodes,
+    int? codeLength,
+    int? numCharsBetweenDashes,
+    String? characterSet}) {
+
+
+  characterSet ??= "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  numCodes ??= 1;
+  codeLength ??= 15;
+  numCharsBetweenDashes ??= 5;
+
+  assert (numCodes < pow(characterSet.length, codeLength),
+        "This combination of code length and number of codes will create duplicates.");
+
+  Set<String> newCodes = {};
+  final random = Random.secure();
+
+  while (newCodes.length < numCodes) {
+    final code = StringBuffer();
+    int dashIncrementer = 0;
+
+    for (var i = 0; i < codeLength; i++) {
+      if (dashIncrementer >= numCharsBetweenDashes) {
+        code.write("-");
+        dashIncrementer = 0;
+      }
+      dashIncrementer++;
+
+      code.write(characterSet[random.nextInt(characterSet.length)]);
+    }
+
+    newCodes.add(code.toString());
+    code.clear();
+  }
+
+  return newCodes.toList();
 }
