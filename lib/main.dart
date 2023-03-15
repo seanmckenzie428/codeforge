@@ -17,6 +17,7 @@ void main() async {
   WindowOptions windowOptions = const WindowOptions(
     size: Size(400, 600),
     center: true,
+    title: "Codeforge",
   );
 
   windowManager.waitUntilReadyToShow(windowOptions, () async {
