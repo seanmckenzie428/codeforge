@@ -59,7 +59,8 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
   int _numCharsBetweenDashes = 0;
   int _codesPerFile = 0;
   String _outputFile = "";
-  TextEditingController outputTextController = TextEditingController();
+  String _outputDirectory = "";
+  TextEditingController outputDirectoryController = TextEditingController();
   bool _isGenerating = false;
 
   @override
@@ -135,25 +136,39 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                         },
                       ),
                       TextFormField(
-                        decoration: const InputDecoration(labelText: "Output File"),
+                        keyboardType: TextInputType.text,
+                        decoration:
+                            const InputDecoration(labelText: "Output File Name (Must end in .csv)"),
                         validator: (value) {
                           if (value?.isEmpty ?? true) {
-                            return "Please enter a valid file name";
+                            return "Please enter a name for your files";
                           }
                           return null;
                         },
                         onSaved: (value) {
                           _outputFile = value ?? _outputFile;
                         },
-                        controller: outputTextController,
+                      ),
+                      TextFormField(
+                        decoration: const InputDecoration(labelText: "Where to save your files"),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return "Please choose a location for your files";
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _outputDirectory = value ?? _outputDirectory;
+                        },
+                        controller: outputDirectoryController,
                       ),
                       const SizedBox(
                         height: 4.0,
                       ),
                       TextButton(
                         onPressed: () async {
-                          _outputFile = await _getOutputLocation() ?? _outputFile;
-                          outputTextController.text = _outputFile;
+                          _outputDirectory = await _getOutputLocation() ?? _outputDirectory;
+                          outputDirectoryController.text = _outputDirectory;
                         },
                         child: const Text("Browse"),
                       ),
@@ -173,7 +188,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
                                       label: 'View Files',
                                       onPressed: () async {
                                         // Open file explorer to show csv files
-                                        var f = File(_outputFile);
+                                        var f = File(_outputDirectory);
                                         // Windows
                                         try {
                                           await Process.run("explorer",  [f.parent.path]);
@@ -245,7 +260,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
           for (int i = 0; i < files.length; i++) {
             var stripExtension =
                 _outputFile.substring(0, _outputFile.length - 4);
-            final filename = "${stripExtension}_$i.csv";
+            final filename = "$_outputDirectory/${stripExtension}_$i.csv";
             try {
               await _writeFile(filename, files[i]);
             } on Exception catch (e) {
@@ -255,7 +270,7 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
             }
           }
         } else {
-          final filename = _outputFile;
+          final filename = "$_outputDirectory/$_outputFile";
           // await Isolate.run(() async {
           //   return _writeFile(filename, codes);
           // });
@@ -279,27 +294,41 @@ class _RandomCodeGeneratorState extends State<RandomCodeGenerator> {
   List<List<String>> _splitIntoFiles(List<String> codes, int codesPerFile) {
     final files = <List<String>>[];
     for (int i = 0; i < codes.length; i += codesPerFile) {
-      final file = codes.sublist(i, i + codesPerFile);
-      files.add(file);
+      if (i + codesPerFile > codes.length) {
+        final file = codes.sublist(i);
+        files.add(file);
+        break;
+      } else {
+        final file = codes.sublist(i, i + codesPerFile);
+        files.add(file);
+      }
     }
     return files;
   }
 
   Future<void> _writeFile(String filename, List<String> codes) async {
+    print("filename: $filename");
+    print("codes: $codes");
+    var doesExist = await File(filename).exists();
+    print("doesExist $doesExist");
+    if (!doesExist) {
+      File(filename).createSync();
+    }
     final file = File(filename);
+    print("file: $file");
     final rows = codes.map((code) => [code]).toList();
+    print("rows: $rows");
     String csv = const ListToCsvConverter().convert(rows);
-    await file.writeAsString(csv);
+    print("csv: $csv");
+    await file.writeAsString(csv, mode: FileMode.writeOnly, flush: true);
 
     // await Process.run('explorer', [directory.path]);
   }
 
   Future<String?> _getOutputLocation() async {
-    String? outputFile = await FilePicker.platform.saveFile(
-      dialogTitle: 'Please select an output file:',
-      fileName: 'codes.csv',
+    String? outputFile = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Please select an folder for your files:',
       lockParentWindow: true,
-      allowedExtensions: ["csv", "txt"],
     );
 
     // print(outputFile);
